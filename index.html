@@ -229,6 +229,7 @@
     display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(36px,5vw,72px);
     align-items:center; padding:64px 0 36px;
   }
+  .intro.solo{ display:block; padding:64px 0 8px; }   /* single-product hero, full width */
   .intro .eyebrow{ animation:rise .6s var(--ease) both; }
   .intro h1{
     font-family:var(--serif); font-weight:300;
@@ -822,39 +823,11 @@
 </div>
 
 <main>
-  <!-- ===================== GALLERY ===================== -->
-  <section class="view active" id="view-gallery">
-    <div class="wrap">
-      <div class="intro">
-        <div class="intro-copy">
-          <span class="eyebrow">Nia — Muralist &amp; Visual Artist · New York</span>
-          <h1 class="serif">Bold, intentional, <em>emotionally driven.</em></h1>
-          <p>Nia is a New York–based muralist and visual artist whose work blends abstract elements with recognizable forms — expressive, yet made to be lived with. These are her available studio paintings, released individually by auction or direct acquisition.</p>
-        </div>
-        <div class="feature" id="featuredWork"></div>
-      </div>
-
-      <div class="filterbar">
-        <button class="filt active" data-filter="all">All works</button>
-        <button class="filt" data-filter="auction">Live auctions</button>
-        <button class="filt" data-filter="buynow">Available</button>
-        <span class="count" id="gridCount"></span>
-      </div>
-
-      <div class="grid" id="grid"></div>
-    </div>
-  </section>
-
-  <!-- ===================== DETAIL ===================== -->
-  <section class="view" id="view-detail">
-    <div class="wrap detail">
-      <a class="crumb" href="#/">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        All works
-      </a>
+  <!-- ===================== SINGLE PRODUCT ===================== -->
+  <section class="view active" id="view-product">
+    <div class="wrap detail" style="padding-top:48px">
       <div class="detail-grid" id="detailGrid"><!-- injected --></div>
       <section class="bidlog" id="bidHistory"></section>
-      <section class="more" id="moreWorks"></section>
     </div>
   </section>
 </main>
@@ -1054,10 +1027,8 @@ async function initData(){
     if (data && data.length){
       ARTWORKS.length = 0;
       data.forEach(r => ARTWORKS.push(mapRow(r)));
-      renderGrid();
+      renderProduct();
       renderTopbar();
-      renderFeatured();
-      route();
     }
   } catch(e){ console.warn("[works] load error:", e); }
 }
@@ -1437,27 +1408,11 @@ setInterval(tick, 1000);
 /* ============================================================
    ROUTER
    ============================================================ */
-const viewGallery = document.getElementById("view-gallery");
-const viewDetail  = document.getElementById("view-detail");
-
-function route(){
-  const hash = location.hash || "#/";
-  const m = hash.match(/^#\/work\/(.+)$/);
-  if (m && byId(m[1])){
-    renderDetail(byId(m[1]));
-    viewGallery.classList.remove("active");
-    viewDetail.classList.add("active");
-    window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
-  } else {
-    activeWorkId = null;
-    viewDetail.classList.remove("active");
-    viewGallery.classList.add("active");
-    renderFeatured();
-    document.getElementById("actionBar")?.classList.remove("show");
-    document.body.classList.remove("has-action-bar");
-  }
+// single-product site: render the one work as the whole page
+function renderProduct(){
+  const a = ARTWORKS[0];
+  if (a) renderDetail(a);
 }
-window.addEventListener("hashchange", route);
 
 /* ============================================================
    SIGN-IN MODAL
@@ -1670,7 +1625,6 @@ function applyWorkRow(row){
 function onWorkChange(row){
   applyWorkRow(row);
   renderTopbar();
-  if (document.getElementById("view-gallery").classList.contains("active")){ renderGrid(); renderFeatured(); }
   if (activeWorkId === row.id){
     const a = byId(row.id);
     const cur = document.getElementById("curBid");
@@ -1826,8 +1780,7 @@ document.addEventListener("pointermove",(e)=>{
 /* ============================================================
    INIT
    ============================================================ */
-renderGrid();
-route();
+renderProduct();
 renderTopbar();
 tick();
 onScroll();
