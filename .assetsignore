@@ -1,0 +1,6 @@
+# Keep these out of the deployed site (they're repo/docs/server source, not the site)
+supabase/
+SUPABASE_SETUP.md
+wrangler.jsonc
+.assetsignore
+.gitignore
