@@ -394,6 +394,7 @@
 
   /* ============ DETAIL ============ */
   .detail{ padding-top:30px; padding-bottom:120px; }
+  .loading-state{ grid-column:1 / -1; min-height:60vh; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:11px; letter-spacing:.18em; text-transform:uppercase; }
   .crumb{
     display:inline-flex; align-items:center; gap:9px; margin:8px 0 34px;
     font-size:13px; color:var(--ink-2); letter-spacing:.02em;
@@ -1023,14 +1024,15 @@ async function initData(){
   if (!sb) return;
   try{
     const { data, error } = await sb.from("works").select("*").order("sort", { ascending:true });
-    if (error){ console.warn("[works] load failed:", error.message); return; }
-    if (data && data.length){
+    if (error){ console.warn("[works] load failed:", error.message); }
+    else if (data && data.length){
       ARTWORKS.length = 0;
       data.forEach(r => ARTWORKS.push(mapRow(r)));
-      renderProduct();
-      renderTopbar();
     }
   } catch(e){ console.warn("[works] load error:", e); }
+  // render once, with live data if it loaded — otherwise the built-in sample fallback
+  renderProduct();
+  renderTopbar();
 }
 
 /* ============================================================
@@ -1413,6 +1415,9 @@ function renderProduct(){
   const a = ARTWORKS[0];
   if (a) renderDetail(a);
 }
+function showProductLoading(){
+  if (detailGrid) detailGrid.innerHTML = `<div class="loading-state">Loading…</div>`;
+}
 
 /* ============================================================
    SIGN-IN MODAL
@@ -1780,12 +1785,13 @@ document.addEventListener("pointermove",(e)=>{
 /* ============================================================
    INIT
    ============================================================ */
-renderProduct();
-renderTopbar();
+// when Supabase is configured, wait for the real work (show a loading state) to
+// avoid flashing the sample item; otherwise render the built-in sample immediately
+if (sb){ showProductLoading(); } else { renderProduct(); renderTopbar(); }
 tick();
 onScroll();
 initInk();
-initData();   // override sample data with live works from Supabase (if configured)
+initData();   // loads live works, then renders the product (sample fallback on failure)
 setupRealtime();   // live bid updates across all viewers
 </script>
 </body>
